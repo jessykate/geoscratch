@@ -3,6 +3,7 @@ $(function() {
 	///////////////////////////////////////////////////////
 	//				Models & Collections
 	///////////////////////////////////////////////////////
+
 	
 	// each fog is made up of individual posts
 	window.Post = Backbone.Model.extend({
@@ -17,6 +18,9 @@ $(function() {
 		},
 		url: function() { 
 			return "/api/fog/" + this.name + "/posts";
+		},
+		comparator: function(post) {
+			return (new Date(this.get("created")).getTime());
 		}
 	});
 
@@ -42,7 +46,11 @@ $(function() {
 		// the *model* (FogMeta) and POST to that url with the data being the
 		// model body. if this is a regular GET request to list existing fogs,
 		// then we'll hit '/api/fogs'/
-		url: '/api/fogs',
+		url: function() { 
+			return '/api/fogs/location/'+user_lat+"/"+user_long+"/radius/"+this.radius;
+		},
+		toggle: 1,
+		radius: 10
 	});
 
 	///////////////////////////////////////////////////////
@@ -144,7 +152,7 @@ $(function() {
 
 		addOne: function(postData) {
 			var view = new PostView({model:postData});
-			$('#posts').append(view.render().el);
+			$('#posts').prepend(view.render().el);
 		},
 
 		addAll: function() {
@@ -197,10 +205,17 @@ $(function() {
 
 	// this is basically the FogListView
 	window.HomeView = Backbone.View.extend({
-		events: { 'click #submit':  'createFog' },
+		events: { 'click #submit':  'createFog', 
+				'click #sortrecent': 'sortRecent',
+				'click #updatesearch': 'updateSearch',
+				'click #sortclosest': 'sortClosest'
+		},
 
 		initialize: function() {
 
+			// default search radius for nearby fogs
+			var search_radius = 100;
+		
 			this.template = _.template($('#newfog-template').html());
 			// the binding of the 'all' event tells backbone to call render() on
 			// ALL triggered events. the addOne event adds html to the DOM so
@@ -227,29 +242,30 @@ $(function() {
 			return this;
 		},
 
+		updateSearch: function(e) {
+			fogList.radius = $("#newrange").val();
+			fogList.fetch();
+			e.preventDefault();
+		},
+
 		// gets the information from the form fields and creates a new fog data
 		// model with it. creating the new fog will implicitly call
 		// this.addOne(), below, and thusly also trigger the 'all' event,
 		// causing the template to re-render. 
 		createFog: function(e) {
-			if (navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(function(position) {  
-					var user_lat = position.coords.latitude;
-					var user_long = position.coords.longitude;
-					var nameField = this.$('#name');
-					var radiusField = this.$('#radius');
-					var expiryField = this.$('#expiry');
-					console.log(user_lat+", "+user_long);
+			if (!location_error) {
+				var nameField = $('#name');
+				var radiusField = $('#radius');
+				var expiryField = $('#expiry');
+				console.log("using current location = " + user_lat+", "+user_long);
 
-					fogList.create({
-						name: nameField.val(),
-						radius: radiusField.val(),
-						expiry: expiryField.val(),
-						latitude: user_lat,
-						longitude: user_long,
-						created: Date()
-						}, {wait: true});
-				});
+				fogList.create({
+					name: nameField.val(),
+					radius: radiusField.val(),
+					expiry: expiryField.val(),
+					location: [user_lat, user_long],
+					created: Date()
+					}, {wait: true});
 			} else {
 				console.log('geolocation not supported.');
 			} 
@@ -260,13 +276,38 @@ $(function() {
 			e.preventDefault();
 		},
 
+		// sorting the collection will trigger a change event
+		sortRecent: function(e) {
+			console.log("sorting by most recent");
+			fogList.toggle *= (-1);
+			fogList.comparator = function(fog) {
+				return (this.toggle)*new Date(fog.get("created")).getTime();
+			}
+			// re-sort and trigger the reset event
+			fogList.sort();
+			e.preventDefault();
+		},
+
+		sortClosest: function(e) {
+			console.log("sorting by distance");
+			fogList.toggle *= (-1);
+			fogList.comparator = function(fog) {
+				return fog.get("radius");
+			}
+			e.preventDefault();
+		},
+
 		// add the dom markup for a new fog item
 		addOne: function(f) {
+			// TODO insert it into the right place, depending on sort order (do
+			// we care?)
 			var view = new FogMetaView({model:f});
-			$('#foglist').append(view.render().el);
+			$('#foglist').prepend(view.render().el);
 		},
 
 		addAll: function() {
+			// remove the current listing before reseting the fog list. 
+			$('#foglist').html("");
 			fogList.each(this.addOne);
 		}
 
@@ -283,18 +324,42 @@ $(function() {
 		home: function() {
 
 			window.fogList = new FogList();
-			fogList.fetch({success: function(collection, response) {
-				console.log("retrieved models from server successfully!");
-			}, error: function(collection, response) {
-				console.log("error!");
-				console.log(response);
-			}});
 
-			var Home = new HomeView();
-			Home.render();
-			// see this post: http://lostechies.com/derickbailey/2011/11/09/backbone-js-object-literals-views-events-jquery-and-el/
-			// for why to structure the call to render and inject the html this way. 
-			$("#fogform").html(Home.el);
+			// set up some 
+			geo_success = function(position) {
+				// save the user's position as a global variable 
+				user_lat = position.coords.latitude;
+				user_long = position.coords.longitude;
+				console.log("obtained user location (" + user_lat + "," + user_long + ")");
+				location_error = false;
+
+				fogList.fetch({success: function(collection, response) {
+					console.log("retrieved models from server successfully!");
+				}, error: function(collection, response) {
+					console.log("error!");
+					console.log(response);
+				}});
+
+				var Home = new HomeView();
+				Home.render();
+				// see this post: http://lostechies.com/derickbailey/2011/11/09/backbone-js-object-literals-views-events-jquery-and-el/
+				// for why to structure the call to render and inject the html this way. 
+				$("#fogform").html(Home.el);
+			};
+
+			geo_error = function(error) {
+				console.log("Error, could not obtain location. Error " + error.code);
+				$("fogform").html("Error, could not obtain user location.");
+				location_error = true;
+			};
+
+
+			// start watching the user's location. 
+			navigator.geolocation.watchPosition(
+				geo_success, 
+				geo_error, 
+				{enableHighAccuracy:true}
+			);
 		},
 
 		fogpage: function(fogid) {
@@ -307,6 +372,10 @@ $(function() {
 		help: function() { }
 
 	});
+
+	showValue = function(newValue) {
+		$("#searchradius").html(newValue);
+	};
 
 	var approuter = new AppRouter();
 	Backbone.history.start({pushState: true});

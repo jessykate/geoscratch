@@ -6,6 +6,7 @@ require 'mongo'
 require 'json'
 
 DB = Mongo::Connection.new.db("fogapp") 
+DB.collection('meta').create_index([["location", Mongo::GEO2D]])
 
 #get '/' do
 #	File.new('public/index.html').readlines
@@ -16,11 +17,17 @@ get  /^(?!\/(api))/ do
 	File.new('public/index.html').readlines
 end
 
-# get a list of all fogs
-get '/api/fogs' do
+# get a list of all fogs. request must be in the form
+# /fogs/location/<latitude>/<longitude>/radius/<integer>
+get %r{/api/fogs/location/([\d.-]*)/([\d.-]*)/radius/(\d*)/?} do
 	content_type :json
+	latitude = params[:captures][0].to_f
+	longitude= params[:captures][1].to_f
+	radius = params[:captures][2].to_i
+	puts "latitude = #{latitude}, longitude=#{longitude}, radius=#{radius}"
 	resp = []
-	DB.collection('meta').find().each do |row| 
+	DB.collection('meta').find({"location" => {"$near" => [latitude, longitude], 
+		"$maxDistance" => radius}}).each do |row| 
 		# map the id  to a string representation of the object's id 
 		resp << from_bson_id(row)
 	end

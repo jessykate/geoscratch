@@ -16,7 +16,7 @@
 			<h1><%= name %></h1>
 			<span>Radius: <%= radius %></span>
 			<span>Expiry: <%= expiry %></span>
-			<span>Location: (<%= latitude %>, <%= longitude %>)</span>
+			<span>Location: (<%= location[0] %>, <%= location[1] %>)</span>
 			<div id="newpost-wrapper">
 				<input id="newpost" type="text" placeholder="New Post">
 			</div>
@@ -28,7 +28,8 @@
 			<h3><a href="fog/<%= _id %>" class="foglink"><%= name %></a></h3>
 				<span>Radius: <%= radius %></span>
 				<span>Expiry: <%= expiry %></span>
-				<span>Location: (<%= latitude %>, <%= longitude %>)</span>
+				<span>Location: (<%= location[0] %>, <%= location[1] %>)</span>
+				<div>Created: <%= created %></div>
 				<a href="#" class="deletefog">Delete?</a>
 			</section>
 		</script>
@@ -43,6 +44,18 @@
 					<button id="submit">Create</button> 
 				</form>
 			</section>
+			<section class="sortfogs">
+			<div>
+				<form id="searchrange">
+				Search for fogs within a radius of <span id="searchradius">1</span>m.: 
+				<input id="newrange" type="range" min=1 max=1000 value=1 onchange="showValue(this.value)" />
+				<button id="updatesearch">Update</button>
+			</div>
+				<div>
+					<a href="#" id="sortrecent">by most recent</a> 
+					<a href="#" id="sortclosest">by closest</a>
+				</div>
+			</section>
 		</script>
 
 		<!-- these must appear AFTER the template definitions, or the
@@ -55,7 +68,7 @@
 	</head>
 	<body>
 		<div id="container">
-			<div id="fogform">hello</div>
+			<div id="fogform">retreiving nearby streams...</div>
 			<div id="foglist"></div>
 		</div>
 		<script type="text/javascript" src="/js/fogs.js"></script>

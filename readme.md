@@ -14,6 +14,9 @@ feeding.
 - sudo gem install sinatra
 - backbonejs and its dependencies (jquery, underscore, json2, etc.)
 
+# To start
+- start mongo: run `mongod` command
+- start sinatra server: cd geostream; ./server.rb
 
 
 
