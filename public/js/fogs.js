@@ -93,6 +93,7 @@ $(function() {
 	});
 
 
+	// individual stream view
 	window.FogView = Backbone.View.extend({
 		events: {"keypress #newpost": "submitOnEnter" },
 		el: $("#container"),
@@ -203,7 +204,7 @@ $(function() {
 		}
 	});
 
-	// this is basically the FogListView
+	// main/landing page view. also basically the FogListView
 	window.HomeView = Backbone.View.extend({
 		events: { 'click #submit':  'createFog', 
 				'click #sortrecent': 'sortRecent',
@@ -215,6 +216,7 @@ $(function() {
 
 			// default search radius for nearby fogs
 			var search_radius = 100;
+			// this.socket = options.socket;
 		
 			this.template = _.template($('#newfog-template').html());
 			// the binding of the 'all' event tells backbone to call render() on
@@ -297,6 +299,12 @@ $(function() {
 			e.preventDefault();
 		},
 
+		msgReceived: function(message) {
+			// WRITE ME
+			// access message.event for specific event type/string
+			console.log("socket message received");
+		},
+
 		// add the dom markup for a new fog item
 		addOne: function(f) {
 			// TODO insert it into the right place, depending on sort order (do
@@ -314,6 +322,14 @@ $(function() {
 	});
 
 	var AppRouter = Backbone.Router.extend({
+		initialize: function() {
+			// create a new socket. in each route, we'll 
+			// - pass the socket to the view, so it can send updates to the server, and 
+			// - register a callback for received messages with the route-specific view
+			this.socket = new io.Socket(null, {port: 8421});
+			this.socket.connect();
+			console.log(this.socket);
+		},
 	
 		routes: {
 			"": "home",
@@ -325,7 +341,6 @@ $(function() {
 
 			window.fogList = new FogList();
 
-			// set up some 
 			geo_success = function(position) {
 				// save the user's position as a global variable 
 				user_lat = position.coords.latitude;
@@ -340,11 +355,13 @@ $(function() {
 					console.log(response);
 				}});
 
+				// put this inside the fetch() success callback?
 				var Home = new HomeView();
-				Home.render();
+				//this.socket.on('message', function(msg){Home.msgReceived(msg)});
+				Home.render({model: fogList, socket: this.socket, el: $("#formform")});
 				// see this post: http://lostechies.com/derickbailey/2011/11/09/backbone-js-object-literals-views-events-jquery-and-el/
 				// for why to structure the call to render and inject the html this way. 
-				$("#fogform").html(Home.el);
+				// $("#fogform").html(Home.el);
 			};
 
 			geo_error = function(error) {
@@ -369,7 +386,9 @@ $(function() {
 			var fogView = new FogView({model: fogmeta});
 		},
 
-		help: function() { }
+		help: function() {
+			// fancy popin lightbox here. 
+		}
 
 	});
 

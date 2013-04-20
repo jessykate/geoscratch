@@ -8,15 +8,31 @@ feeding.
 
 # Dependencies
 
-- mongodb (via it's own installer or gem install mongodb)
-- gem install mongo
-- gem install bson_ext
+- mongodb 
+	- brew update; brew install mongodb
+	- gem install mongodb
+- sudo gem install json
+- sudo gem install mongo
+- sudo gem install bson_ext
 - sudo gem install sinatra
 - backbonejs and its dependencies (jquery, underscore, json2, etc.)
+- npm install socket.io
 
 # To start
-- start mongo: run `mongod` command
+
+- start mongo: run `mongod` command to start the mongodb database
+- start the socket server `node app.js`
 - start sinatra server: cd geostream; ./server.rb
+- open public/index.html in your browser.
+
+# Architecture
+
+Streams are stored in mongo on the backend. The `public/` directory is the client
+side, with the backbone code in public/js. `server.rb` provides the API to the
+mongo database, responding to request to list, create, add posts, etc.
+`carefeed.js` does background housekeeping to clean up expired streams. `app.js`
+manages socket connections. 
+
 
 
 
