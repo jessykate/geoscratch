@@ -1,11 +1,87 @@
+<!DOCTYPE html>
 <html>
 	<head>
-		<title>Fog</title>
-		<link rel="stylesheet" href="css/style.css" />
+		<title>GeoScratch</title>
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<link href='http://fonts.googleapis.com/css?family=Lato:100,900' rel='stylesheet' type='text/css'>
+		<link href='http://fonts.googleapis.com/css?family=VT323' rel='stylesheet' type='text/css'>
+
+		<!-- CSS -->
+		<link href="/css/bootstrap.css" rel="stylesheet">
+		<link rel="stylesheet" href="/css/custom.css" />
+		<style type="text/css">
+
+		/* Sticky footer styles
+		-------------------------------------------------- */
+
+		html,
+		body {
+			height: 100%;
+			/* The html and body elements cannot have any padding or margin. */
+		}
+
+		/* Wrapper for page content to push down footer */
+		#wrap {
+			min-height: 100%;
+			height: auto !important;
+			height: 100%;
+			/* Negative indent footer by it's height */
+			margin: 0 auto -60px;
+		}
+
+		/* Set the fixed height of the footer here */
+		#push,
+		#footer {
+			height: 105px;
+		}
+		#footer {
+			background-color: #f5f5f5;
+		}
+
+		/* Lastly, apply responsive CSS fixes as necessary */
+		@media (max-width: 767px) {
+			#footer {
+			margin-left: -20px;
+			margin-right: -20px;
+			padding-left: 20px;
+			padding-right: 20px;
+			}
+		}
+
+
+
+		/* Custom page CSS
+		-------------------------------------------------- */
+		/* Not required for template or sticky footer method. */
+
+		.container {
+			width: auto;
+			max-width: 680px;
+		}
+		.container .credit {
+			margin: 20px 0;
+		}
+
+		</style>
+		<link href="/css/bootstrap-responsive.css" rel="stylesheet">
+
+		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+		<script src="../assets/js/html5shiv.js"></script>
+		<![endif]-->
+
+		<!-- Fav and touch icons -->
+		<link rel="icon" href="/img/favicon.ico">
 
 		<script type="text/template" id="post-template">
 			<div class="post">
-				<span class="post-content"><%= content %></span>
+				<blockquote>
+					<span class="content"><%= content %></span>
+				</blockquote>
 				<div class="post-datetime"><% print(created); %></div>
 				<a href="#" class="deletepost">Delete?</a>
 			</div>
@@ -18,44 +94,48 @@
 			<span>Expiry: <%= expiry %></span>
 			<span>Location: (<%= location[0] %>, <%= location[1] %>)</span>
 			<div id="newpost-wrapper">
-				<input id="newpost" type="text" placeholder="New Post">
+					<input id="newpost" type="text" placeholder="New Post">
 			</div>
 			<div id="posts"></div>
 		</script>
 
 		<script type="text/template" id="fogmeta-template">
-			<section>
-			<h3><a href="fog/<%= _id %>" class="foglink"><%= name %></a></h3>
-				<span>Radius: <%= radius %></span>
-				<span>Expiry: <%= expiry %></span>
-				<span>Location: (<%= location[0] %>, <%= location[1] %>)</span>
-				<div>Created: <%= created %></div>
-				<a href="#" class="deletefog">Delete?</a>
+			<section class="pad-meta">
+				<div class="pad-meta-data"><%= radius %> m  
+					<% if (expiry) { %> / <%= expiry %> hrs</div> <% } %>
+				</div>
+				<h3 class="fog-meta-name" class="subheading"><a href="fog/<%= _id %>" class="foglink"><%= name %></a></h3>
+				<div><small class="pull-right"><a href="#" class="deletefog">Delete?</a></small></div>
 			</section>
 		</script>
 
 		<script type="text/template" id="newfog-template">
-			<section>
-				<h1>New Fog</h1>
-				<form id="newfog">
-					<input id="name" type="text" placeholder="Fog Name">
-					<input id="radius" type="number" placeholder="Radius (meters)">
-					<input id="expiry" type="number" placeholder="Expiry (hours)">
-					<button id="submit">Create</button> 
-				</form>
-			</section>
 			<section class="sortfogs">
 			<div>
 				<form id="searchrange">
-				Search for fogs within a radius of <span id="searchradius">1</span>m.: 
+				Show fogs within a radius of <span id="searchradius">100</span>m.: 
 				<input id="newrange" type="range" min=1 max=1000 value=1 onchange="showValue(this.value)" />
 				<button id="updatesearch">Update</button>
 			</div>
 				<div>
-					<a href="#" id="sortrecent">by most recent</a> 
-					<a href="#" id="sortclosest">by closest</a>
+					<h2>Nearby Streams</h2>
+					<a href="#" id="sortrecent">most recent</a> | <a href="#" id="sortclosest">closest</a>
 				</div>
 			</section>
+    <div id="footer" class="navbar-fixed-bottom">
+      <div class="container">
+		<section>
+			<h3 class="subheading">I Want a New One!</h3>
+			<form id="newfog">
+				<input class="newfog-input-name" id="name" type="text" placeholder="Fog Name">
+				<input class="newfog-input-radius" id="radius" type="number" placeholder="Radius (meters)">
+				<input class="newfog-input-expiry" id="expiry" type="number" placeholder="Expiry (hours)">
+				<button id="submit">Create</button> 
+			</form>
+		</section>
+      </div>
+	</div><!-- end footer -->
+
 		</script>
 
 		<!-- these must appear AFTER the template definitions, or the
@@ -65,12 +145,30 @@
 		<script type="text/javascript" src="/js/vendor/underscore.js"></script>
 		<script type="text/javascript" src="/js/vendor/json2.js"></script>
 		<script type="text/javascript" src="/js/vendor/backbone.js"></script>
+		<script type="text/javascript" src="/js/canvas_identicon.js"></script>
+		<script type="text/javascript" src="/js/bootstrap.js"></script>
 	</head>
 	<body>
-		<div id="container">
-			<div id="fogform">retreiving nearby streams...</div>
-			<div id="foglist"></div>
-		</div>
+
+	<!-- Part 1: Wrap all page content here -->
+    <div id="wrap">
+
+      <!-- Begin page content -->
+		<div class="container">
+
+			<h1 id="app-name-header">GeoScratch</h2>
+			<h3 class="subheading"><img src="/img/Location-Icon.jpeg" class="header-logo">a scratchpad for the world</h3>
+			<div id="container">
+				<div id="fogform">retreiving nearby streams...</div>
+				<div id="foglist"></div>
+			</div>
+
+		</div> <!-- end class container -->
+
+		<div id="push"></div>
+	</div> <!-- end wrap -->
+
+
 		<script type="text/javascript" src="/js/fogs.js"></script>
 	</body>
 </html>

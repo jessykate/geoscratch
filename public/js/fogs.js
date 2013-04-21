@@ -333,6 +333,13 @@ $(function() {
 				console.log("obtained user location (" + user_lat + "," + user_long + ")");
 				location_error = false;
 
+				// get or create the user's identity
+				if (localStorage["geoscratch"]) {
+					username = localStorage["geoscratch"]["username"];
+
+
+				}
+
 				fogList.fetch({success: function(collection, response) {
 					console.log("retrieved models from server successfully!");
 				}, error: function(collection, response) {

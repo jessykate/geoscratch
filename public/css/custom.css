@@ -1,0 +1,67 @@
+body {
+	font-family: 'Lato', sans-serif;
+	font-size: 15px;
+}
+
+h1,h2 {
+	font-family: 'VT323', cursive;
+}
+
+.subheading {
+	font-family: 'Lato', sans-serif;
+	font-weight: 100;
+}
+
+input, button, select {
+	font-family: 'VT323', cursive;
+}
+
+.post {
+	padding-bottom: 20px;
+	padding-top: 20px;
+	border-bottom: 1px solid #e5e5e5;
+}
+
+.content {
+	font-size: 20px;
+}
+
+.header-logo {
+	padding-right: 20px;
+}
+
+.pad-meta-data {
+	font-family: 'Lato', sans-serif;
+	font-weight: bold;
+	font-size: 17px;
+}
+
+.pad-meta {
+	border-bottom: 1px solid #e5e5e5;
+	margin-top: 30px;
+}
+
+.newfog-input-radius, .newfog-input-expiry {
+	width: 50px;
+}
+
+.fog-meta-name {
+	font-size: 30px;
+	font-family: 'Lato', sans-serif;
+	font-weight: 100;
+}
+
+#newpost-wrapper {
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
+
+#newpost-input {
+	height: 30px;
+	width: 300px;
+	font-size: 25px;
+}
+
+#app-name-header {
+	font-size: 55px;
+}
