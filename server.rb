@@ -8,11 +8,13 @@ require 'json'
 DB = Mongo::Connection.new.db("fogapp") 
 DB.collection('meta').create_index([["location", Mongo::GEO2D]])
 
+set :bind, '0.0.0.0'
+
 #get '/' do
 #	File.new('public/index.html').readlines
 #end
 
-get  /^(?!\/(api))/ do
+get  /^(?!\/(api|img|css|js))/ do
 	content_type 'text/html'
 	File.new('public/index.html').readlines
 end
